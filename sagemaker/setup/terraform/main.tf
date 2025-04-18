@@ -11,7 +11,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# VPC Configuration
+#VPC Configuration
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   
@@ -31,7 +31,7 @@ module "vpc" {
   }
 }
 
-# EKS Cluster
+#EKS Cluster
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
   
@@ -61,7 +61,7 @@ module "eks" {
   }
 }
 
-# FSx for Lustre
+#FSx for Lustre
 resource "aws_fsx_lustre_file_system" "training" {
   storage_capacity            = 1200
   subnet_ids                 = [module.vpc.private_subnets[0]]
@@ -75,7 +75,7 @@ resource "aws_fsx_lustre_file_system" "training" {
   }
 }
 
-# Security Group for FSx
+#Security Group for FSx
 resource "aws_security_group" "fsx" {
   name        = "fsx-security-group"
   description = "Security group for FSx for Lustre"
@@ -100,7 +100,7 @@ resource "aws_security_group" "fsx" {
   }
 }
 
-# ECR Repository
+#ECR Repository
 resource "aws_ecr_repository" "training" {
   name = "peft-optimum-neuron"
   
@@ -113,7 +113,7 @@ resource "aws_ecr_repository" "training" {
   }
 }
 
-# IAM Role for SageMaker
+#IAM Role for SageMaker
 resource "aws_iam_role" "sagemaker_execution" {
   name = "sagemaker-execution-role"
   
@@ -131,13 +131,13 @@ resource "aws_iam_role" "sagemaker_execution" {
   })
 }
 
-# IAM Policy for SageMaker
+#IAM Policy for SageMaker
 resource "aws_iam_role_policy_attachment" "sagemaker_full_access" {
   role       = aws_iam_role.sagemaker_execution.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
 }
 
-# Outputs
+#Outputs
 output "vpc_id" {
   value = module.vpc.vpc_id
 }
