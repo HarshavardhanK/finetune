@@ -1,16 +1,6 @@
-# SageMaker HyperPod Setup with Terraform
+# LoRA Fine-tuning with Optimum Neuron on SageMaker HyperPod EKS
 
-This repository contains Terraform configurations and scripts to set up a SageMaker HyperPod environment for distributed training, specifically optimized for LoRA fine-tuning of large language models using Optimum Neuron.
-
-## Prerequisites
-
-1. Install Terraform (v1.0.0 or later)
-2. Install AWS CLI and configure credentials
-3. Install kubectl
-4. Install eksctl
-5. Install Docker
-6. Python 3.11
-7. Required Python packages (see requirements.txt)
+This project implements efficient fine-tuning of large language models using LoRA (Low-Rank Adaptation) on Amazon SageMaker HyperPod with EKS orchestration. We specifically target the Llama 3.2 7B model using Optimum Neuron for optimized training on AWS Trainium instances.
 
 ## Architecture Overview
 
@@ -36,57 +26,6 @@ This repository contains Terraform configurations and scripts to set up a SageMa
    - Private subnet for secure network access
    - Security groups configured for EFA network devices
    - Kubeflow Training Operator for job orchestration
-
-## Setup Process
-
-### 1. Initialize Terraform
-
-```bash
-terraform init
-```
-
-### 2. Review and Apply Terraform Configuration
-
-```bash
-terraform plan
-terraform apply
-```
-
-This will create:
-- VPC with public and private subnets
-- EKS cluster with trn1.32xlarge nodes
-- FSx for Lustre file system
-- ECR repository
-- IAM roles and policies
-
-### 3. Configure kubectl
-
-After Terraform completes, configure kubectl to access the EKS cluster:
-
-```bash
-aws eks --region $(terraform output -raw aws_region) update-kubeconfig --name $(terraform output -raw eks_cluster_id)
-```
-
-### 4. Run FSx Setup Script
-
-Run the FSx setup script to configure the CSI driver and storage:
-
-```bash
-export EKS_CLUSTER_NAME=$(terraform output -raw eks_cluster_id)
-export AWS_REGION=$(terraform output -raw aws_region)
-export PRIVATE_SUBNET_ID=$(terraform output -raw private_subnets | jq -r '.[0]')
-export SECURITY_GROUP_ID=$(terraform output -raw fsx_security_group_id)
-
-./lustre_fs.sh
-```
-
-### 5. Build and Push Docker Image
-
-Run the Docker image build script:
-
-```bash
-./build_docker_image.sh
-```
 
 ## Fine-tuning Implementation
 
@@ -131,43 +70,24 @@ Run the Docker image build script:
 
 ## Usage
 
-### Infrastructure Setup
-
-1. **Export AWS credentials**
+1. **Setup Environment**
    ```bash
+   # Export AWS credentials
    export AWS_ACCESS_KEY_ID="your_access_key"
    export AWS_SECRET_ACCESS_KEY="your_secret_key"
    export AWS_DEFAULT_REGION="ap-southeast-2"
    ```
 
-2. **Run Infrastructure Health Check**
-   ```bash
-   # Make the script executable
-   chmod +x sagemaker/setup/health_check.sh
-   
-   # Run the health check
-   ./sagemaker/setup/health_check.sh
-   ```
-   
-   This script will verify:
-   - AWS credentials and permissions
-   - EKS cluster status and node availability
-   - FSx for Lustre file system status
-   - Required IAM roles and security groups
-   - VPC endpoints and network connectivity
-   - Storage class and CSI driver status
-   - ECR repository access
-
-3. **Initialize Training**
+2. **Initialize Training**
    ```bash
    # Generate job specifications
-   ./sagemaker/setup/finetuning/generate-jobspec.sh --model llama3 --dataset alpaca
+   ./generate-jobspec.sh --model llama3 --dataset alpaca
 
    # Start training pipeline
-   ./sagemaker/setup/finetuning/training.sh
+   ./training.sh
    ```
 
-4. **Monitor Progress**
+3. **Monitor Progress**
    ```bash
    # Check training status
    kubectl get pods -n kubeflow
@@ -193,20 +113,13 @@ Run the Docker image build script:
    - Support for different PEFT methods
    - Easy integration with HuggingFace ecosystem
 
-## Cleanup
+## Requirements
 
-To destroy all resources:
-
-```bash
-terraform destroy
-```
-
-## Notes
-
-- The FSx file system is configured with 1200 GiB storage and 250 MB/s/TiB throughput
-- The EKS cluster is configured with trn1.32xlarge instances for training
-- All resources are tagged with environment=dev
-- The setup uses the us-east-1 region by default
+- AWS account with appropriate permissions
+- SageMaker HyperPod access
+- HuggingFace access token
+- Python 3.11
+- Required Python packages (see requirements.txt)
 
 ## References
 
