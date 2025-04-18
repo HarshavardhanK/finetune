@@ -1,4 +1,4 @@
-# SageMaker HyperPod Setup with Terraform
+# LoRA Finetuning in SageMaker HyperPod
 
 This repository contains Terraform configurations and scripts to set up a SageMaker HyperPod environment for distributed training, specifically optimized for LoRA fine-tuning of large language models using Optimum Neuron.
 
