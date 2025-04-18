@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Default values
+#Default values
 MODEL_CONFIG="llama3"
 DATASET_CONFIG="alpaca"
 NAMESPACE="kubeflow"
@@ -8,7 +8,7 @@ FSX_ID=""
 ECR_REPO=""
 ROLE_ARN=""
 
-# Parse command line arguments
+#Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
         --model)
@@ -63,7 +63,7 @@ function get_yaml_value() {
     yq eval "$path" "$file"
 }
 
-# Extract values from config files
+#Extract values from config files
 MODEL_NAME=$(get_yaml_value "$MODEL_CONFIG_FILE" '.model.name')
 HF_MODEL_ID=$(get_yaml_value "$MODEL_CONFIG_FILE" '.model.huggingface_id')
 PEFT_METHOD=$(get_yaml_value "$MODEL_CONFIG_FILE" '.model.peft_method')
@@ -74,7 +74,7 @@ DATASET_NAME=$(get_yaml_value "$DATASET_CONFIG_FILE" '.dataset.name')
 DATASET_PATH=$(get_yaml_value "$DATASET_CONFIG_FILE" '.dataset.source.path')
 MAX_LENGTH=$(get_yaml_value "$DATASET_CONFIG_FILE" '.dataset.preprocessing.max_length')
 
-# Generate tokenization job spec
+#Generate tokenization job spec
 cat > tokenize_data.yaml << EOF
 apiVersion: batch/v1
 kind: Job
@@ -107,7 +107,7 @@ spec:
       restartPolicy: Never
 EOF
 
-# Generate training job spec
+#Generate training job spec
 cat > launch_peft_train.yaml << EOF
 apiVersion: batch/v1
 kind: Job
@@ -175,7 +175,7 @@ spec:
       restartPolicy: Never
 EOF
 
-# Generate weight consolidation spec
+#Generate weight consolidation spec
 cat > consolidation.yaml << EOF
 apiVersion: batch/v1
 kind: Job
