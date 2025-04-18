@@ -2,6 +2,90 @@
 
 This repository contains Terraform configurations and scripts to set up a SageMaker HyperPod environment for distributed training, specifically optimized for LoRA fine-tuning of large language models using Optimum Neuron.
 
+## ⚠️ Important Configuration Warning
+
+This project uses Terraform for infrastructure management. There is a potential conflict with the CloudFormation-based approach in the scripts directory:
+
+1. **Configuration Conflict**
+   - The `sagemaker/setup/scripts/config.sh` and `create_config.sh` use CloudFormation
+   - This project uses Terraform for infrastructure management
+   - Running both approaches will cause conflicts
+
+2. **Do Not Mix Approaches**
+   - ❌ Do not run `config.sh` or `create_config.sh` if using Terraform
+   - ❌ Do not use CloudFormation stack creation if using Terraform
+   - ✅ Use only one approach: either Terraform OR CloudFormation
+
+3. **Alternative: Using create_config.sh**
+   If you prefer to use CloudFormation instead of Terraform:
+   
+   ⚠️ **Important: Credential Requirements**
+   The script relies on AWS CLI's credential chain, so you must have AWS credentials configured in one of these ways:
+
+   ```bash
+   # Method 1: Environment variables (Recommended)
+   export AWS_ACCESS_KEY_ID="your_access_key"
+   export AWS_SECRET_ACCESS_KEY="your_secret_key"
+   export AWS_REGION="your_region"
+   export STACK_ID="hyperpod-eks-full-stack"  # Default CloudFormation stack name
+   
+   # Method 2: AWS CLI configuration
+   aws configure
+   # Then enter your credentials when prompted
+   
+   # Method 3: AWS credentials file (~/.aws/credentials)
+   [default]
+   aws_access_key_id = your_access_key
+   aws_secret_access_key = your_secret_key
+   region = your_region
+   ```
+
+   The script will automatically use credentials in this order:
+   1. Environment variables
+   2. AWS CLI configuration
+   3. AWS credentials file
+
+   ⚠️ **Required IAM permissions**:
+   - CloudFormation:FullAccess
+   - IAM:FullAccess
+   - EKS:FullAccess
+   - EC2:FullAccess
+   - S3:FullAccess
+   - FSx:FullAccess
+   - ECR:FullAccess
+
+   ⚠️ **Before running the script**:
+   1. Ensure AWS credentials are properly configured
+   2. Verify you can run `aws sts get-caller-identity`
+   3. Check that the CloudFormation stack exists
+   4. Confirm you have the required IAM permissions
+
+   To run the configuration:
+   ```bash
+   ./sagemaker/setup/scripts/config.sh  # This will download and run create_config.sh
+   ```
+
+   The script will:
+   - Use AWS credentials from the standard AWS CLI credential chain
+   - Retrieve resources from the specified CloudFormation stack
+   - Export environment variables to `env_vars` file
+   - Add source command to shell config files
+
+4. **Why This Matters**
+   - Mixing approaches can lead to:
+     - Resource conflicts
+     - Duplicate resource creation
+     - Conflicting environment variables
+     - Permission issues
+     - Billing for duplicate resources
+
+5. **Correct Setup Process**
+   - Choose ONE approach:
+     - Option 1: Use the Terraform-based setup described in this README
+     - Option 2: Use the CloudFormation-based setup with `create_config.sh`
+   - Do not mix both approaches
+   - Follow the corresponding script execution order in `sagemaker/setup/scripts/README.md`
+
 ## Prerequisites
 
 1. Install Terraform (v1.0.0 or later)
